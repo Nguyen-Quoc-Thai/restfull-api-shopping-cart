@@ -9,8 +9,15 @@ router.get('/', (req, res, next) => {
 })
 
 router.post('/', (req, res, next) => {
+    const {productID, quantity} = req.body
+    const order = {
+        productID,
+        quantity
+    }
+
     res.status(201).json({
-        msg: "POST route /orders"
+        msg: "POST order was created!",
+        order
     })
 })
 
