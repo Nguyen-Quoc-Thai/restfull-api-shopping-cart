@@ -2,6 +2,7 @@ const express = require('express')
 const mongoose = require('mongoose')
 
 const Product = require('./../../models/product')
+const upload =  require('./../../config/upload')
 
 const router = express.Router()
 
@@ -11,7 +12,7 @@ const productsUrl = baseUrl + '/products/'
 router.get('/', (req, res, next) => {
 
     Product.find({})
-    .select('name price _id')
+    .select('name price image _id')
     .then(products => {
         const response = {
             msg: 'success',
@@ -20,6 +21,7 @@ router.get('/', (req, res, next) => {
                 return {
                     name: product.name,
                     price: product.price,
+                    image: product.image,
                     _id: product._id,
                     request: {
                         type: 'GET',
@@ -44,7 +46,7 @@ router.get('/:productID', (req, res, next) => {
     const {productID} = req.params
 
     Product.findById(productID)
-    .select('name price _id')
+    .select('name price image _id')
     .then(product => {
 
         if(!product){
@@ -58,6 +60,7 @@ router.get('/:productID', (req, res, next) => {
             product: {
                 name: product.name,
                 price: product.price,
+                image: product.image,
                 _id: product._id,
                 request: {
                     type: 'GET',
@@ -75,12 +78,14 @@ router.get('/:productID', (req, res, next) => {
     })
 })
 
-router.post('/', (req, res, next) => {
+router.post('/', upload.single('productImage'), (req, res, next) => {
     const {name, price} = req.body
+    console.log(req.file)
     const product = new Product({
         _id: new mongoose.Types.ObjectId(),
         name,
-        price
+        price,
+        image: '/' + req.file.path.replace(/\\/,'/')
     })
 
     product.save()
@@ -90,6 +95,7 @@ router.post('/', (req, res, next) => {
             product: {
                 name: newProduct.name,
                 price: newProduct.price,
+                image: newProduct.image,
                 _id: newProduct._id,
                 request: {
                     type: 'GET',
