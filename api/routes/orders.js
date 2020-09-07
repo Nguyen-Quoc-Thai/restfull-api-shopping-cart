@@ -37,6 +37,39 @@ router.get('/', (req, res, next) => {
     })
 })
 
+router.get('/:orderID', (req, res, next) => {
+    const {orderID} = req.params
+
+    Order.findById(orderID)
+    .select('product quantity _id')
+    .then(order => {
+        if(!order){
+            return res.status(404).json({
+                msg: 'Order not found!'
+            })
+        }
+
+        res.status(200).json({
+            msg: 'success',
+            order: {
+                product: order.product,
+                quantity: order.quantity,
+                _id: order._id,
+                request: {
+                    type: 'GET',
+                    url: ordersUrl
+                }
+            }
+        })
+    })
+    .catch(error => {
+        res.status(500).json({
+            msg: 'Server error!',
+            error
+        })
+    })
+})
+
 router.post('/', (req, res, next) => {
     const {productID, quantity} = req.body
     const order = new Order ({
@@ -84,30 +117,53 @@ router.post('/', (req, res, next) => {
     })
 })
 
-router.put('/:orderID', (req, res, next) => {
-    const {orderID} = req.params
-
-    res.status(200).json({
-        msg: "PUT route /orders/:orderID",
-        id: orderID
-    })
-})
-
 router.patch('/:orderID', (req, res, next) => {
-    const {orderID} = req.params
+    const {orderID: _id} = req.params
+    const order = {}
+    for (const ops of req.body){
+        order[ops.propName] = ops.value
+    }
 
-    res.status(200).json({
-        msg: "PATCH route /orders/:orderID",
-        id: orderID
+    Order.update({_id}, {$set: order})
+    .then(result => {
+        res.status(200).json({
+            msg: 'success',
+            request: {
+                type: 'GET',
+                url: ordersUrl + _id
+            }
+        })
+    })
+    .catch(error => {
+        res.status(500).json({
+            msg: 'Server error!',
+            error
+        })
     })
 })
 
 router.delete('/:orderID', (req, res, next) => {
-    const {orderID} = req.params
+    const {orderID: _id} = req.params
 
-    res.status(200).json({
-        msg: "DELETE route /orders/:orderID",
-        id: orderID
+    Order.remove({_id})
+    .then(result => {
+        res.status(200).json({
+            msg: 'success',
+            request: {
+                type: 'POST',
+                url: ordersUrl,
+                body: {
+                    product: 'Object productID',
+                    quantity: 'Number'
+                }
+            }
+        })
+    })
+    .catch(error => {
+        res.status(500).json({
+            msg: 'Server error!',
+            error
+        })
     })
 })
 
