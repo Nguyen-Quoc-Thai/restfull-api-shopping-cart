@@ -5,29 +5,74 @@ const Product = require('./../../models/product')
 
 const router = express.Router()
 
+const baseUrl = process.env.BASE_URL || 'http://localhost:8080'
+const productsUrl = baseUrl + '/products/'
+
 router.get('/', (req, res, next) => {
 
     Product.find({})
-    .then(docs => {
-        res.status(200).json({
-            msg: "GET route /products",
-            products: docs
+    .select('name price _id')
+    .then(products => {
+        const response = {
+            msg: 'success',
+            count: products.length,
+            products: products.map(product => {
+                return {
+                    name: product.name,
+                    price: product.price,
+                    _id: product._id,
+                    request: {
+                        type: 'GET',
+                        url: productsUrl + product._id
+                    }
+                }
+            })
+        }
+
+        res.status(200).json(response)
+    })
+    .catch(error => {
+        console.log(error)
+        res.status(500).json({
+            msg: "Server error!",
+            error
         })
     })
-    .catch(err => console.log(err))
 })
 
 router.get('/:productID', (req, res, next) => {
     const {productID} = req.params
 
     Product.findById(productID)
-    .then(doc => {
+    .select('name price _id')
+    .then(product => {
+
+        if(!product){
+            return res.status(404).json({
+                msg: 'Product not found!'
+            })
+        }
+
         res.status(200).json({
-            msg: "GET route /products/:productID",
-            product: doc
+            msg: "success",
+            product: {
+                name: product.name,
+                price: product.price,
+                _id: product._id,
+                request: {
+                    type: 'GET',
+                    url: productsUrl
+                }
+            }
         })
     })
-    .catch(err => console.log(err))
+    .catch(error => {
+        console.log(error)
+        res.status(500).json({
+            msg: "Server error!",
+            error
+        })
+    })
 })
 
 router.post('/', (req, res, next) => {
@@ -39,43 +84,78 @@ router.post('/', (req, res, next) => {
     })
 
     product.save()
-    .then(res => console.log(res))
-    .catch(err => console.log(err))
-
-    res.status(201).json({
-        msg: "POST product was created!",
-        product
-    })
-})
-
-router.put('/:productID', (req, res, next) => {
-    const {productID} = req.params
-
-    Product.findById(id)
-    .then(doc => {
-        res.status(200).json({
-            msg: "PUT route /products/:productID",
-            id: productID
+    .then(newProduct => {
+        res.status(201).json({
+            msg: "success",
+            product: {
+                name: newProduct.name,
+                price: newProduct.price,
+                _id: newProduct._id,
+                request: {
+                    type: 'GET',
+                    url: productsUrl + newProduct._id
+                }
+            }
         })
     })
-    .catch(err => console.log(err))
+    .catch(error => {
+        console.log(error)
+        res.status(500).json({
+            msg: "Server error!",
+            error
+        })
+    })
 })
 
 router.patch('/:productID', (req, res, next) => {
-    const {productID} = req.params
+    const {productID: _id} = req.params
+    const product = {}
+    for (const ops of req.body) {
+        product[ops.propName] = ops.value
+    }
 
-    res.status(200).json({
-        msg: "PATCH route /products/:productID",
-        id: productID
+    Product.update({_id}, {$set: product})
+    .then(result => {
+        res.status(200).json({
+            msg: "success",
+            request: {
+                type: 'GET',
+                url: productsUrl + _id
+            }
+        })
+    })
+    .catch(error => {
+        console.log(error)
+        res.status(500).json({
+            msg: "Server error!",
+            error
+        })
     })
 })
 
 router.delete('/:productID', (req, res, next) => {
-    const {productID} = req.params
+    const {productID: _id} = req.params
 
-    res.status(200).json({
-        msg: "DELETE route /products/:productID",
-        id: productID
+    Product.remove({_id})
+    .then(result => {
+        res.status(200).json({
+            msg: "success",
+            request: {
+                type: 'POST',
+                url: productsUrl,
+                body: {
+                    name: 'String',
+                    price: 'Number'
+                }
+            }
+        })
+    })
+    .catch(error => {
+        console.log(error)
+        res.status(500).json({
+            msg: "Server error!",
+            error
+        })
     })
 })
 
