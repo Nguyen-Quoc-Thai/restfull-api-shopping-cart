@@ -4,6 +4,8 @@ const cors = require('cors')
 
 const productRouters = require('./api/routes/products')
 const orderRoutes = require('./api/routes/orders')
+const userRoutes = require('./api/routes/users')
+
 const connectDB = require('./config/db')
 
 const app = express()
@@ -18,6 +20,7 @@ app.use(cors())
 
 app.use('/products', productRouters)
 app.use('/orders', orderRoutes)
+app.use('/users', userRoutes)
 
 // Handling errors
 app.use((req, res, next) => {
