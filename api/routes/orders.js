@@ -1,15 +1,17 @@
 const express = require('express')
 const mongoose = require('mongoose')
 
-const Order = require('./../../models/order')
-const Product = require('./../../models/product')
+const Order = require('./../models/order')
+const Product = require('./../models/product')
+
+const checkAuth = require('./../middleware/check-auth')
 
 const router = express.Router()
 
 const baseUrl = process.env.BASE_URL || 'http://localhost:8080'
 const ordersUrl = baseUrl + '/orders/'
 
-router.get('/', (req, res, next) => {
+router.get('/', checkAuth, (req, res, next) => {
     Order.find()
     .select('product quantity _id')
     .then(orders => {
@@ -37,7 +39,7 @@ router.get('/', (req, res, next) => {
     })
 })
 
-router.get('/:orderID', (req, res, next) => {
+router.get('/:orderID', checkAuth, (req, res, next) => {
     const {orderID} = req.params
 
     Order.findById(orderID)
@@ -70,7 +72,7 @@ router.get('/:orderID', (req, res, next) => {
     })
 })
 
-router.post('/', (req, res, next) => {
+router.post('/', checkAuth, (req, res, next) => {
     const {productID, quantity} = req.body
     const order = new Order ({
         _id: new mongoose.Types.ObjectId(),
@@ -117,7 +119,7 @@ router.post('/', (req, res, next) => {
     })
 })
 
-router.patch('/:orderID', (req, res, next) => {
+router.patch('/:orderID', checkAuth, (req, res, next) => {
     const {orderID: _id} = req.params
     const order = {}
     for (const ops of req.body){
@@ -142,10 +144,10 @@ router.patch('/:orderID', (req, res, next) => {
     })
 })
 
-router.delete('/:orderID', (req, res, next) => {
+router.delete('/:orderID', checkAuth, (req, res, next) => {
     const {orderID: _id} = req.params
 
-    Order.remove({_id})
+    Order.deleteOne({_id})
     .then(result => {
         res.status(200).json({
             msg: 'success',

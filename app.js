@@ -6,7 +6,7 @@ const productRouters = require('./api/routes/products')
 const orderRoutes = require('./api/routes/orders')
 const userRoutes = require('./api/routes/users')
 
-const connectDB = require('./config/db')
+const connectDB = require('./api/config/db')
 
 const app = express()
 

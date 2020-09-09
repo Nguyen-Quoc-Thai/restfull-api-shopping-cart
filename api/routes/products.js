@@ -1,8 +1,11 @@
 const express = require('express')
 const mongoose = require('mongoose')
 
-const Product = require('./../../models/product')
-const upload =  require('./../../config/upload')
+const Product = require('./../models/product')
+
+const upload =  require('./../config/upload')
+
+const checkAuth = require('./../middleware/check-auth')
 
 const router = express.Router()
 
@@ -78,9 +81,8 @@ router.get('/:productID', (req, res, next) => {
     })
 })
 
-router.post('/', upload.single('productImage'), (req, res, next) => {
+router.post('/', checkAuth, upload.single('productImage'), (req, res, next) => {
     const {name, price} = req.body
-    console.log(req.file)
     const product = new Product({
         _id: new mongoose.Types.ObjectId(),
         name,
@@ -113,7 +115,7 @@ router.post('/', upload.single('productImage'), (req, res, next) => {
     })
 })
 
-router.patch('/:productID', (req, res, next) => {
+router.patch('/:productID', checkAuth, (req, res, next) => {
     const {productID: _id} = req.params
     const product = {}
     for (const ops of req.body) {
@@ -139,10 +141,10 @@ router.patch('/:productID', (req, res, next) => {
     })
 })
 
-router.delete('/:productID', (req, res, next) => {
+router.delete('/:productID', checkAuth, (req, res, next) => {
     const {productID: _id} = req.params
 
-    Product.remove({_id})
+    Product.deleteOne({_id})
     .then(result => {
         res.status(200).json({
             msg: "success",
