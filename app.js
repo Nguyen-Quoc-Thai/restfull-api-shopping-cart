@@ -2,6 +2,8 @@ const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
 
+require('dotenv').config()
+
 const productRouters = require('./api/routes/products')
 const orderRoutes = require('./api/routes/orders')
 const userRoutes = require('./api/routes/users')

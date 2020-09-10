@@ -1,7 +1,7 @@
 const nodemailer = require("nodemailer")
 
-const user = process.env.HOST_MAIL || 'bathanggayk18@gmail.com'
-const pass = process.env.HOST_PASSWORD || 'blogger123'
+const user = process.env.HOST_MAIL
+const pass = process.env.HOST_PASSWORD
 
 // create reusable transporter object using the default SMTP transport
 
