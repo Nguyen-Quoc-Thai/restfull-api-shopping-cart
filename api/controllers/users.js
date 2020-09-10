@@ -4,6 +4,8 @@ const jwt = require('jsonwebtoken')
 
 const User = require('./../models/user')
 
+const { sendMail } = require('./../config/nodemailer')
+
 const baseUrl = process.env.BASE_URL || 'http://localhost:8080'
 const usersUrl = baseUrl + '/users/'
 const jwtKey = process.env.JWT_KEY || 'Secret_key_JWT'
@@ -25,6 +27,8 @@ exports.signup =  (req, res, next) => {
             })
 
         }else{
+            sendMail(email)
+
             bcrypt.hash(password, 10, (error, encryptedPassword) => {
                 if(error){
                     return res.status(500).json({
