@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const crypto = require('crypto')
 
 const User = require('./../models/user')
 const Token = require('./../models/token')
@@ -45,41 +46,30 @@ exports.signup =  (req, res, next) => {
 
                     user.save()
                     .then(newUser => {
-                        bcrypt.hash(newUser._id, 10, (error, encryptedEmail) => {
-                            if(error){
-                                return res.status(500).json({
-                                    msg: 'Server error!',
-                                    error
-                                })
-                            }else{
-                                const token = new Token({
-                                    _id: new mongoose.Types.ObjectId(),
-                                    userID: newUser._id,
-                                    token: encryptedEmail
-                                })
-
-                                token.save()
-                                .then(userReg => {
-                                    sendMail(newUser.email, token)
-                                    return res.status(201).json({
-                                        msg: 'success'
-                                    })
-                                })
-                                .catch(error => {
-                                    return res.status(500).json({
-                                        msg: 'Server error!',
-                                        error
-                                    })
-                                })
-                            }
+                        const token = crypto.randomBytes(16).toString('hex')
+                        const tokenObj = new Token({
+                            _id: new mongoose.Types.ObjectId(),
+                            userID: newUser._id,
+                            token
                         })
 
-                        return res.status(201).json({
-                            msg: 'success'
+                        tokenObj.save()
+                        .then(userReg => {
+                            sendMail(newUser.email, userReg.token)
+                        })
+                        .catch(error => {
+                            res.status(500).json({
+                                msg: 'Server error!',
+                                error
+                            })
+                        })
+
+                        res.status(201).json({
+                            msg: "success"
                         })
                     })
                     .catch(error => {
-                        return res.status(500).json({
+                        res.status(500).json({
                             msg: 'Server error!',
                             error
                         })
@@ -179,9 +169,109 @@ exports.delete =  (req, res, next) => {
 }
 
 exports.confirmation = (req, res, next) => {
+    const {verifyToken: token} = req.params
 
+    Token.findOne({token})
+    .then(tokenObj => {
+        if(!tokenObj){
+            return res.status(404).json({
+                msg: 'Invalid token!'
+            })
+        }
+
+        User.findOne({_id: tokenObj.userID})
+        .then(user => {
+            if(!user) {
+                return res.status(404).json({
+                    msg: 'Invalid token!'
+                })
+            }
+
+            if(user.isVerified){
+                return res.status(200).json({
+                    msg: 'Your account has already been verified!'
+                })
+            }
+
+            user.isVerified = true
+
+            user.save((error) => {
+                if(error) {
+                    return res.status(500).json({
+                        msg: 'Server error!',
+                        error
+                    })
+                }
+
+                res.status(200).json({
+                    msg: 'The account has been verified! Please log in!'
+                })
+            })
+        })
+        .catch(error => {
+            res.status(500).json({
+                msg: 'Server error!',
+                error
+            })
+        })
+    })
+    .catch(error => {
+        res.status(500).json({
+            msg: 'Server error!',
+            error
+        })
+    })
 }
 
 exports.resend = (req, res, next) => {
+    const {email} = req.body
 
+    if(!email) {
+        res.status(404).json({
+            msg: 'Email is required!'
+        })
+    }
+
+    User.findOne({email}).
+    then(user => {
+        if(!user) {
+            return res.status(404).json({
+                msg: 'Email not found!'
+            })
+        }
+
+        if(user.isVerified) {
+            return res.status(200).json({
+                msg: 'This account has already been verified. Please log in.'
+            })
+        }
+
+        const token = crypto.randomBytes(16).toString('hex')
+        const tokenObj = new Token({
+            _id: new mongoose.Types.ObjectId(),
+            userID: user._id,
+            token
+        })
+
+        tokenObj.save()
+        .then(userReg => {
+            sendMail(email, userReg.token)
+
+            res.status(200).json({
+                msg: `A verification email has been sent to ${email}`
+            })
+        })
+        .catch(error => {
+            res.status(500).json({
+                msg: 'Server error!',
+                error
+            })
+        })
+    })
+    .catch(error => {
+        res.status(500).json({
+            msg: 'Server error!',
+            error
+        })
+    })
 }

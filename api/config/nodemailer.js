@@ -19,14 +19,14 @@ exports.sendMail = (receiver, token) => {
         }
     })
 
-    const url = `http://localhost:8080/comfirmation/${token}`
+    const url = `http://localhost:8080/users/confirmation/${token}`
 
     const mailOptions = {
-        from: '"PA_NQT 👻" <bathanggayk18@gmail.com>', // sender address
+        from: '"Request verify ✔ "<bathanggayk18@gmail.com>', // sender address
         to: receiver, // list of receivers
-        subject: "New customer", // Subject line
-        text: "Create a new account", // plain text body
-        html: `<b>It work!</b> <hr> <a href=${url}>${url}</a>`, // html body
+        subject: "New user", // Subject line
+        text: "Verify your account !", // plain text body
+        html: `<b>Click the link below to verify</b> <hr> <a href=${url}>${url}</a>`, // html body
     }
 
     // send mail with defined transport object
