@@ -5,7 +5,7 @@ const pass = process.env.HOST_PASSWORD
 
 // create reusable transporter object using the default SMTP transport
 
-exports.sendMail = (receiver) => {
+exports.sendMail = (receiver, token) => {
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         port: 587,
@@ -19,12 +19,14 @@ exports.sendMail = (receiver) => {
         }
     })
 
+    const url = `http://localhost:8080/comfirmation/${token}`
+
     const mailOptions = {
         from: '"PA_NQT 👻" <bathanggayk18@gmail.com>', // sender address
         to: receiver, // list of receivers
         subject: "New customer", // Subject line
         text: "Create a new account", // plain text body
-        html: "<b>It work!</b>", // html body
+        html: `<b>It work!</b> <hr> <a href=${url}>${url}</a>`, // html body
     }
 
     // send mail with defined transport object
