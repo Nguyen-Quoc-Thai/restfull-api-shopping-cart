@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 
 const Product = require('./../models/product')
 
-const baseUrl = process.env.BASE_URL || 'http://localhost:8080'
+const baseUrl = process.env.BASE_URL
 const productsUrl = baseUrl + '/products/'
 
 exports.getAll = (req, res, next) => {

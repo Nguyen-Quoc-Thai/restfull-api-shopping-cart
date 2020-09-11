@@ -2,6 +2,7 @@ const nodemailer = require("nodemailer")
 
 const user = process.env.HOST_MAIL
 const pass = process.env.HOST_PASSWORD
+const baseUrl = process.env.BASE_URL
 
 // create reusable transporter object using the default SMTP transport
 
@@ -19,7 +20,7 @@ exports.sendMail = (receiver, token) => {
         }
     })
 
-    const url = `http://localhost:8080/users/confirmation/${token}`
+    const url = `${baseUrl}/users/signup/confirmation/${token}`
 
     const mailOptions = {
         from: '"Request verify ✔ "<bathanggayk18@gmail.com>', // sender address

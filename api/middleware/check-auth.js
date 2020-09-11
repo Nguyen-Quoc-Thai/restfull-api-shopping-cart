@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken')
 
-const jwtKey = process.env.JWT_KEY || 'Secret_key_JWT'
+const jwtKey = process.env.JWT_KEY
 
 module.exports = (req, res, next) => {
     const bearer = req.headers.authorization
